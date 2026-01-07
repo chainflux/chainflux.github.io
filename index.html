@@ -253,35 +253,67 @@ function resize() {
 window.addEventListener("resize", resize);
 resize();
 
-const particles = [];
-const COUNT = 160;
+/**
+ * Star = 星空中的一个粒子
+ * z: 深度（0-1），越小越远
+ */
+class Star {
+  constructor() {
+    this.reset(true);
+  }
 
-for (let i = 0; i < COUNT; i++) {
-  particles.push({
-    x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height,
-    v: 0.3 + Math.random() * 0.6,
-    r: Math.random() * 2.5 + 1,
-    a: Math.random() * 0.6 + 0.3
-  });
-}
+  reset(initial = false) {
+    this.z = Math.random();              // 深度
+    this.x = initial
+      ? Math.random() * canvas.width
+      : -50;
+    this.y = Math.random() * canvas.height;
 
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  particles.forEach(p => {
-    p.x += p.v;
-    if (p.x > canvas.width) {
-      p.x = -20;
-      p.y = Math.random() * canvas.height;
+    this.speed = 0.15 + (1 - this.z) * 1.2;
+    this.radius = 0.3 + (1 - this.z) * 1.2;
+    this.alpha = 0.15 + (1 - this.z) * 0.4;
+  }
+
+  update() {
+    this.x += this.speed;
+    if (this.x > canvas.width + 50) {
+      this.reset();
     }
+  }
+
+  draw() {
     ctx.beginPath();
-    ctx.fillStyle = `rgba(79,209,197,${p.a})`;
-    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(79, 209, 197, ${this.alpha})`;
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
     ctx.fill();
-  });
-  requestAnimationFrame(draw);
+
+    // 轻微拖尾（穿梭感关键）
+    ctx.beginPath();
+    ctx.strokeStyle = `rgba(79, 209, 197, ${this.alpha * 0.6})`;
+    ctx.lineWidth = this.radius;
+    ctx.moveTo(this.x - this.speed * 3, this.y);
+    ctx.lineTo(this.x, this.y);
+    ctx.stroke();
+  }
 }
-draw();
+
+const STAR_COUNT = 180;
+const stars = [];
+
+for (let i = 0; i < STAR_COUNT; i++) {
+  stars.push(new Star());
+}
+
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  stars.forEach(s => {
+    s.update();
+    s.draw();
+  });
+  requestAnimationFrame(animate);
+}
+
+animate();
 </script>
 
 </body>
