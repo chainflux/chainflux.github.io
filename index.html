@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ChainFlux</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- 字体：工程感 + 冷静 -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #0b0e14;
+      --fg: #e6e8ee;
+      --muted: #8a8f98;
+      --accent: #4fd1c5;
+      --border: #1f2430;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.6;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 40px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    nav a {
+      margin-left: 24px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    nav a:hover {
+      color: var(--fg);
+    }
+
+    main {
+      max-width: 960px;
+      margin: 120px auto;
+      padding: 0 40px;
+    }
+
+    h1 {
+      font-size: 48px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 18px;
+      max-width: 640px;
+    }
+
+    .actions {
+      margin-top: 48px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 12px 20px;
+      margin-right: 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      text-decoration: none;
+      border: 1px solid var(--border);
+      color: var(--fg);
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      color: #081313;
+      border-color: transparent;
+    }
+
+    section {
+      margin-top: 120px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 24px;
+    }
+
+    .card {
+      padding: 24px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #0f1320;
+    }
+
+    .card h3 {
+      margin-top: 0;
+      font-size: 16px;
+    }
+
+    footer {
+      padding: 40px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">CHAINFLUX</div>
+  <nav>
+    <a href="#projects">Projects</a>
+    <a href="#about">About</a>
+    <!-- 👇 后台入口，先随便放 -->
+    <a href="https://localhost:48080" target="_blank">Console →</a>
+  </nav>
+</header>
+
+<main>
+  <h1>Decentralized Data Flow.</h1>
+  <p class="subtitle">
+    ChainFlux is a system-oriented workspace for experimenting with
+    distributed data pipelines, state flows, and infrastructure design.
+  </p>
+
+  <div class="actions">
+    <a class="btn primary" href="#projects">Explore Systems</a>
+    <a class="btn" href="https://github.com/chainflux" target="_blank">GitHub</a>
+  </div>
+
+  <section id="projects">
+    <h2>Systems</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>ChainFlux Core</h3>
+        <p>Core abstractions for chained data and state propagation.</p>
+      </div>
+      <div class="card">
+        <h3>Flow Engine</h3>
+        <p>Composable pipelines for event-driven and reactive systems.</p>
+      </div>
+      <div class="card">
+        <h3>Ledger Sync</h3>
+        <p>Deterministic synchronization across distributed nodes.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="about">
+    <h2>About</h2>
+    <p class="subtitle">
+      Built as a long-term technical sandbox.
+      No marketing, no hype — just systems.
+    </p>
+  </section>
+</main>
+
+<footer>
+  © ChainFlux · Built for systems, not slides
+</footer>
+
+</body>
+</html>
