@@ -121,11 +121,25 @@
       font-size: 13px;
       text-align: center;
     }
+    
+    #bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    body > *:not(canvas) {
+      position: relative;
+      z-index: 1;
+    }
+    
   </style>
 </head>
 
-<body>
 
+<body>
+<canvas id="bg"></canvas>
 <header>
   <div class="logo">CHAINFLUX</div>
   <nav>
@@ -178,6 +192,58 @@
 <footer>
   © ChainFlux · Built for systems, not slides
 </footer>
+
+<script>
+  const canvas = document.getElementById('bg');
+  const ctx = canvas.getContext('2d');
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  const PARTICLE_COUNT = 120;
+  const SPEED = 0.3;
+  const particles = [];
+
+  function createParticle() {
+    return {
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: SPEED + Math.random() * 0.5,
+      vy: 0,
+      size: Math.random() * 1.5 + 0.5,
+      alpha: Math.random() * 0.4 + 0.1
+    };
+  }
+
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    particles.push(createParticle());
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (const p of particles) {
+      p.x += p.vx;
+      if (p.x > canvas.width) {
+        p.x = -10;
+        p.y = Math.random() * canvas.height;
+      }
+
+      ctx.beginPath();
+      ctx.fillStyle = `rgba(79, 209, 197, ${p.alpha})`;
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    requestAnimationFrame(draw);
+  }
+
+  draw();
+</script>
 
 </body>
 </html>
