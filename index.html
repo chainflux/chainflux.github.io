@@ -2,141 +2,332 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8" />
-  <title>ChainFlux | Systems & AI Studio</title>
+  <title>ChainFlux | Neural Video Engine</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
 
   <style>
     :root {
-      --bg: #0b0e14; --fg: #e6e8ee; --muted: #8a8f98; --accent: #4fd1c5; --border: #1f2430; --card-bg: #161b22;
+      --bg: #05070a;
+      --fg: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #4fd1c5;
+      --accent-glow: rgba(79, 209, 197, 0.3);
+      --border: rgba(255, 255, 255, 0.08);
+      --card-bg: rgba(15, 23, 42, 0.6);
     }
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: Inter, system-ui, sans-serif; background: var(--bg); color: var(--fg); line-height: 1.6; }
+
+    * { box-sizing: border-box; outline: none; }
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
     #bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
     body > *:not(canvas) { position: relative; z-index: 1; }
 
-    /* 导航栏 */
-    header { display: flex; justify-content: space-between; align-items: center; padding: 24px 40px; border-bottom: 1px solid var(--border); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100; }
-    .logo { font-weight: 600; letter-spacing: 0.04em; color: var(--accent); cursor: pointer; }
-    nav a { margin-left: 24px; color: var(--muted); text-decoration: none; font-size: 14px; cursor: pointer; transition: 0.3s; }
+    /* 顶部导航升级 */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 2.5rem;
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(20px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo { 
+      font-weight: 600; 
+      letter-spacing: 0.1em; 
+      background: linear-gradient(90deg, #4fd1c5, #a5f3fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      cursor: pointer;
+    }
+    nav { display: flex; align-items: center; gap: 2rem; }
+    nav a { 
+      color: var(--muted); 
+      text-decoration: none; 
+      font-size: 0.85rem; 
+      font-weight: 500;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
     nav a:hover { color: var(--accent); }
 
-    /* 页面布局 */
-    .page-section { display: none; max-width: 1000px; margin: 80px auto; padding: 0 40px; animation: fadeIn 0.4s ease; }
+    /* 页面布局控制 */
+    .page-section { display: none; max-width: 1100px; margin: 6rem auto; padding: 0 2rem; animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
     .page-section.active { display: block; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* 按钮与卡片 */
-    .btn { display: inline-block; padding: 12px 24px; border-radius: 6px; font-size: 14px; cursor: pointer; border: 1px solid var(--border); transition: 0.2s; text-decoration: none; color: var(--fg); background: transparent; }
-    .btn.primary { background: var(--accent); color: #081313; border: none; font-weight: 600; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-top: 40px; }
-    .card { padding: 24px; border: 1px solid var(--border); border-radius: 8px; background: var(--card-bg); }
+    /* 按钮美化 */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      transition: 0.3s;
+      text-decoration: none;
+      color: var(--fg);
+      background: rgba(255,255,255,0.03);
+    }
+    .btn.primary {
+      background: var(--accent);
+      color: #022c22;
+      border: none;
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+    .btn.primary:hover { transform: scale(1.02); box-shadow: 0 0 30px var(--accent-glow); }
 
-    /* AI 生成器专用 */
-    .generator-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 30px; }
-    .upload-container { display: flex; gap: 15px; margin-bottom: 20px; }
-    .upload-box { flex: 1; height: 140px; border: 2px dashed #333; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden; }
+    /* 高级磁贴卡片 */
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 3rem; }
+    .card {
+      padding: 2rem;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--card-bg);
+      backdrop-filter: blur(10px);
+      transition: 0.4s;
+    }
+    .card:hover { border-color: var(--accent); transform: translateY(-4px); background: rgba(15, 23, 42, 0.8); }
+    .card h3 { margin-top: 0; font-size: 1.1rem; color: var(--accent); }
+    .card p { color: var(--muted); font-size: 0.9rem; line-height: 1.7; }
+
+    /* AI 工作站专属 UI */
+    .generator-container {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0) 100%);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 2.5rem;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.4);
+    }
+    .upload-grid { display: flex; gap: 1.5rem; margin-bottom: 1.5rem; }
+    .upload-box {
+      flex: 1;
+      height: 180px;
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      background: rgba(0,0,0,0.2);
+    }
+    .upload-box:hover { border-color: var(--accent); background: rgba(79, 209, 197, 0.05); }
     .upload-box img { width: 100%; height: 100%; object-fit: cover; position: absolute; }
-    .chat-console { background: #0b0e14; border: 1px solid var(--border); border-radius: 8px; padding: 15px; font-family: monospace; font-size: 12px; color: var(--accent); height: 100px; overflow-y: auto; margin-bottom: 20px; }
-    textarea, .styled-input { width: 100%; background: #0b0e14; color: white; border: 1px solid var(--border); padding: 12px; border-radius: 8px; margin-bottom: 15px; }
+    .upload-box span { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
 
-    /* 弹窗认证 */
-    #pwdModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.96); z-index: 2000; align-items: center; justify-content: center; }
-    .modal-content { background: var(--card-bg); padding: 40px; border-radius: 12px; border: 1px solid var(--border); text-align: center; width: 400px; }
+    textarea {
+      width: 100%;
+      height: 120px;
+      background: rgba(0,0,0,0.3);
+      color: white;
+      border: 1px solid var(--border);
+      padding: 1.25rem;
+      border-radius: 12px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      margin-bottom: 1.5rem;
+      transition: 0.3s;
+    }
+    textarea:focus { border-color: var(--accent); background: rgba(0,0,0,0.5); }
+
+    .console-panel {
+      background: #000;
+      border-radius: 10px;
+      padding: 1.25rem;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.75rem;
+      color: #10b981;
+      height: 120px;
+      overflow-y: auto;
+      margin-bottom: 1.5rem;
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+    .console-panel div::before { content: '➜'; margin-right: 10px; opacity: 0.5; }
+
+    /* 历史记录美化 */
+    .history-card {
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .history-card video { width: 100%; display: block; }
+    .history-meta { padding: 1rem; }
+    .history-meta p { font-size: 0.8rem; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* 认证弹窗 */
+    #pwdModal { display: none; position: fixed; inset: 0; background: rgba(2, 6, 23, 0.98); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
+    .modal-content { background: #0f172a; padding: 3rem; border-radius: 24px; border: 1px solid var(--border); text-align: center; width: 440px; box-shadow: 0 0 100px rgba(79, 209, 197, 0.1); }
+    
+    /* 英文状态下隐藏中文 */
+    [data-lang="en"] .zh { display: none; }
+    [data-lang="zh"] .en { display: none; }
   </style>
 </head>
-<body>
+<body data-lang="zh">
 
 <canvas id="bg"></canvas>
 
 <div id="pwdModal">
   <div class="modal-content">
-    <h3 style="margin:0 0 20px 0; color: var(--accent);">安全协议访问</h3>
-    <input type="password" id="accessPwd" class="styled-input" placeholder="访问密码 (9991)">
-    <input type="text" id="tempApiKey" class="styled-input" placeholder="粘贴 Ark API Key">
-    <button onclick="verifyPassword()" class="btn primary" style="width:100%;">确认接入</button>
-    <p onclick="closeModal()" style="margin-top:20px; font-size:12px; color:var(--muted); cursor:pointer;">取消</p>
+    <h2 style="margin:0 0 1rem 0; font-weight: 600;">Neural Access</h2>
+    <p style="color:var(--muted); font-size: 0.9rem; margin-bottom: 2rem;" data-i18n="auth.desc">请输入授权代码以解锁生成引擎</p>
+    <input type="password" id="accessPwd" class="styled-input" placeholder="ACCESS CODE (9991)" style="text-align:center; font-family: 'Fira Code'; letter-spacing: 0.5em; font-size: 1.2rem;">
+    <input type="text" id="tempApiKey" class="styled-input" placeholder="Neural API Key" style="font-size: 0.8rem; opacity: 0.7;">
+    <button onclick="verifyPassword()" class="btn primary" style="width:100%; justify-content: center;" data-i18n="btn.auth">建立链路</button>
   </div>
 </div>
 
 <header>
   <div class="logo" onclick="showPage('home')">CHAINFLUX</div>
   <nav>
-    <a href="#projects" onclick="showPage('home')">Projects</a>
-    <a href="#about" onclick="showPage('home')">About</a>
-    <a onclick="tryEnterAI()" style="color:var(--accent); font-weight:600; border:1px solid var(--accent); padding:5px 12px; border-radius:4px;">AI Studio →</a>
-    <a onclick="resetAll()" style="font-size:10px; opacity:0.4;">Reset</a>
+    <a onclick="showPage('home')" data-i18n="nav.projects">项目</a>
+    <a onclick="showPage('home')" data-i18n="nav.about">关于</a>
+    <a onclick="tryEnterAI()" style="color:var(--accent); font-weight:600; border:1px solid var(--accent); padding:6px 16px; border-radius:8px;" data-i18n="nav.ai">Neural Studio →</a>
+    <a onclick="toggleLang()" id="langBtn" style="opacity:0.6">EN / 中</a>
+    <a onclick="resetAll()" style="font-size:10px; opacity:0.3;">RESET</a>
   </nav>
 </header>
 
 <main id="home-section" class="page-section active">
-  <h1>Decentralized Data Flow.</h1>
-  <p style="color:var(--muted); font-size:18px; max-width:640px;">
-    ChainFlux 是一个面向系统的技术工作区，用于探索分布式数据管道、状态流转与基础设施设计。
-  </p>
-  
-  <div style="margin-top: 48px;">
-    <a class="btn primary" onclick="tryEnterAI()">Explore AI Systems</a>
-    <a class="btn" href="https://github.com/chainflux" target="_blank" style="margin-left:16px;">GitHub</a>
+  <div style="text-align: center; margin-bottom: 5rem;">
+    <h1 style="font-size: 4.5rem; line-height: 1.1; margin-bottom: 2rem; font-weight: 600; letter-spacing: -0.02em;">
+      <span class="en">Decentralized Video Intelligence.</span>
+      <span class="zh">去中心化视频智能引擎。</span>
+    </h1>
+    <p style="color:var(--muted); font-size:1.25rem; max-width:700px; margin: 0 auto 3rem auto;">
+      <span class="en">ChainFlux is a next-generation workspace for neural video generation and distributed infrastructure experiments.</span>
+      <span class="zh">ChainFlux 是专为神经视频生成与分布式基础设施实验打造的下一代工作区。</span>
+    </p>
+    <div style="display: flex; justify-content: center; gap: 1rem;">
+      <a class="btn primary" onclick="tryEnterAI()" data-i18n="btn.start">开启推理序列</a>
+      <a class="btn" href="https://github.com/chainflux" target="_blank">Documentation</a>
+    </div>
   </div>
 
-  <section id="projects" style="margin-top:100px;">
-    <h2 style="font-size: 20px; margin-bottom: 32px;">Systems</h2>
-    <div class="grid">
-      <div class="card">
-        <h3>ChainFlux Core</h3>
-        <p style="color:var(--muted); font-size:14px;">用于链式数据与状态传播的核心抽象层。</p>
-      </div>
-      <div class="card">
-        <h3>Flow Engine</h3>
-        <p style="color:var(--muted); font-size:14px;">用于事件驱动与响应式系统的可组合数据管道。</p>
-      </div>
-      <div class="card">
-        <h3>Ledger Sync</h3>
-        <p style="color:var(--muted); font-size:14px;">在分布式节点之间实现确定性同步。</p>
-      </div>
+  <div class="grid">
+    <div class="card">
+      <h3 data-i18n="sys.core.title">ChainFlux Core</h3>
+      <p data-i18n="sys.core.desc">用于链式数据与状态传播的核心神经抽象层，支持高并发流式处理。</p>
     </div>
-  </section>
-
-  <section id="about" style="margin-top:100px;">
-    <h2 style="font-size: 20px; margin-bottom: 24px;">About</h2>
-    <p style="color:var(--muted); max-width:640px;">
-      这是一个长期的技术实验场，不做营销，不讲故事，只关注系统本身。
-    </p>
-  </section>
+    <div class="card">
+      <h3 data-i18n="sys.flow.title">Motion Engine</h3>
+      <p data-i18n="sys.flow.desc">基于事件驱动的响应式视频管道，实现首尾帧之间完美的逻辑补间。</p>
+    </div>
+    <div class="card">
+      <h3 data-i18n="sys.ledger.title">Sync Protocol</h3>
+      <p data-i18n="sys.ledger.desc">确保全球节点间生成任务的确定性同步，提供低延迟的实时状态跟踪。</p>
+    </div>
+  </div>
 </main>
 
 <main id="ai-section" class="page-section">
-  <h2 style="margin-bottom:10px;">Seedance Studio</h2>
-  <div class="generator-card">
-    <div class="upload-container">
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
+    <div>
+      <h2 style="margin:0; font-size: 2rem;" data-i18n="ai.title">Neural Video Studio</h2>
+      <p style="color:var(--muted); margin: 0.5rem 0 0 0;" data-i18n="ai.subtitle">由 Doubao-Seedance 1.5 Pro 驱动的高精度视觉合成</p>
+    </div>
+    <div style="font-size: 0.75rem; font-family: 'Fira Code'; opacity: 0.5;">STATUS: OPERATIONAL</div>
+  </div>
+
+  <div class="generator-container">
+    <div class="upload-grid">
       <div class="upload-box" onclick="triggerUpload('firstFrame')">
         <img id="firstFramePreview">
-        <span id="firstFrameText">📷 载入首帧</span>
+        <span id="firstFrameText" data-i18n="gen.first">载入首帧 (INITIAL)</span>
       </div>
       <div class="upload-box" onclick="triggerUpload('lastFrame')">
         <img id="lastFramePreview">
-        <span id="lastFrameText">📷 载入尾帧</span>
+        <span id="lastFrameText" data-i18n="gen.last">载入尾帧 (TERMINAL)</span>
       </div>
     </div>
-    <textarea id="promptInput" placeholder="描述视频的动态逻辑..."></textarea>
-    <div class="chat-console" id="console"><div>系统就绪。等待指令...</div></div>
-    <div style="display:flex; justify-content: flex-end;">
-      <button class="btn primary" id="generateBtn" onclick="handleGenerate()">发送推理请求</button>
+    <textarea id="promptInput" placeholder="请输入视觉指令描述，系统将自动注入神经权重..."></textarea>
+    <div class="console-panel" id="console"><div>[TERMINAL READY] 等待用户输入...</div></div>
+    <div style="display:flex; justify-content: space-between; align-items: center;">
+      <div id="nodeStatus" style="font-size: 0.75rem; color: var(--muted);">NODE: SHANGHAI-V3-ARK</div>
+      <button class="btn primary" id="generateBtn" onclick="handleGenerate()" data-i18n="btn.gen">执行生成序列</button>
     </div>
   </div>
-  <h3 style="font-size: 16px; margin-bottom: 20px;">历史序列</h3>
-  <div id="historyGrid" class="grid" style="margin-top:0;"></div>
+
+  <div style="margin-top: 5rem;">
+    <h3 style="font-size: 1.25rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.5rem;">
+      <span style="width: 8px; height: 8px; background: var(--accent); border-radius: 50%;"></span>
+      <span data-i18n="history.title">神经序列归档</span>
+    </h3>
+    <div id="historyGrid" class="grid" style="margin-top:0;"></div>
+  </div>
 </main>
 
 <input type="file" id="fileInput" style="display:none" accept="image/*">
 
 <script>
+/* ===== 语言与国际化 ===== */
+const i18n = {
+  zh: {
+    "nav.projects": "项目", "nav.about": "关于", "nav.ai": "神经工作区 →",
+    "auth.desc": "请输入授权代码以解锁生成引擎", "btn.auth": "建立链路",
+    "btn.start": "开启推理序列", "sys.core.title": "ChainFlux Core",
+    "sys.core.desc": "用于链式数据与状态传播的核心神经抽象层，支持高并发流式处理。",
+    "sys.flow.title": "运动引擎", "sys.flow.desc": "基于事件驱动的响应式视频管道，实现首尾帧之间完美的逻辑补间。",
+    "sys.ledger.title": "同步协议", "sys.ledger.desc": "确保全球节点间生成任务的确定性同步，提供低延迟的实时状态跟踪。",
+    "ai.title": "神经视频工作室", "ai.subtitle": "由 Doubao-Seedance 1.5 Pro 驱动的高精度视觉合成",
+    "gen.first": "载入首帧 (INITIAL)", "gen.last": "载入尾帧 (TERMINAL)",
+    "btn.gen": "执行生成序列", "history.title": "神经序列归档"
+  },
+  en: {
+    "nav.projects": "Projects", "nav.about": "About", "nav.ai": "AI Studio →",
+    "auth.desc": "Enter authentication code to unlock engine", "btn.auth": "Establish Link",
+    "btn.start": "Initiate Inference", "sys.core.title": "ChainFlux Core",
+    "sys.core.desc": "Neural abstraction layer for state propagation and high-concurrency streaming.",
+    "sys.flow.title": "Motion Engine", "sys.flow.desc": "Event-driven reactive pipelines for perfect interpolation between frames.",
+    "sys.ledger.title": "Sync Protocol", "sys.ledger.desc": "Deterministic task synchronization with low-latency real-time tracking.",
+    "ai.title": "Neural Video Studio", "ai.subtitle": "High-precision synthesis powered by Doubao-Seedance 1.5 Pro",
+    "gen.first": "LOAD FIRST FRAME", "gen.last": "LOAD LAST FRAME",
+    "btn.gen": "EXECUTE SEQUENCE", "history.title": "Neural Archives"
+  }
+};
+
+let currentLang = localStorage.getItem('lang') || 'zh';
+
+function toggleLang() {
+  currentLang = currentLang === 'zh' ? 'en' : 'zh';
+  localStorage.setItem('lang', currentLang);
+  applyLang();
+}
+
+function applyLang() {
+  document.body.setAttribute('data-lang', currentLang);
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (i18n[currentLang][key]) el.textContent = i18n[currentLang][key];
+  });
+  // 处理 placeholder
+  const input = document.getElementById('promptInput');
+  input.placeholder = currentLang === 'zh' ? "请输入视觉指令描述，系统将自动注入神经权重..." : "Enter visual instructions, system will inject neural weights...";
+}
+
+/* ===== 系统核心 ===== */
 const db = new Dexie("ChainFluxDB");
 db.version(1).stores({ history: '++id, prompt, timestamp' });
 
 window.onload = () => {
+  applyLang();
   if (localStorage.getItem('verified') === 'true') {
     showPage('ai');
     renderHistory();
@@ -146,6 +337,7 @@ window.onload = () => {
 function showPage(id) {
   document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
   document.getElementById(id + '-section').classList.add('active');
+  window.scrollTo(0, 0);
 }
 
 function tryEnterAI() {
@@ -166,21 +358,21 @@ function verifyPassword() {
     document.getElementById('pwdModal').style.display = 'none';
     showPage('ai');
     renderHistory();
-  } else { alert("密码错误"); }
+  } else { alert("ACCESS DENIED"); }
 }
 
-function closeModal() { document.getElementById('pwdModal').style.display = 'none'; }
-
 function resetAll() {
-  localStorage.removeItem('verified');
-  localStorage.removeItem('ark_api_key');
-  location.reload();
+  if(confirm("确定要重置所有神经链接和认证吗？")) {
+    localStorage.removeItem('verified');
+    localStorage.removeItem('ark_api_key');
+    location.reload();
+  }
 }
 
 function log(msg, isError = false) {
   const div = document.createElement('div');
-  if (isError) div.style.color = "#ff5555";
-  div.innerText = `> ${msg}`;
+  if (isError) div.style.color = "#ef4444";
+  div.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
   const con = document.getElementById('console');
   con.appendChild(div);
   con.scrollTop = con.scrollHeight;
@@ -197,7 +389,7 @@ function triggerUpload(type) {
       document.getElementById(type + 'Preview').src = ev.target.result;
       document.getElementById(type + 'Preview').style.display = 'block';
       document.getElementById(type + 'Text').style.display = 'none';
-      log(`资产已装载: ${type}`);
+      log(`资产映射完成: ${type.toUpperCase()}`);
     };
     reader.readAsDataURL(file);
   };
@@ -206,10 +398,10 @@ function triggerUpload(type) {
 
 async function handleGenerate() {
   const key = localStorage.getItem('ark_api_key');
-  if (!key) return alert("请设置 API Key");
+  if (!key) return alert("API KEY REQUIRED");
   const btn = document.getElementById('generateBtn');
   btn.disabled = true;
-  log("序列初始化...");
+  log("初始化神经渲染管道...");
   try {
     const response = await fetch('https://ark.cn-beijing.volces.com/api/v3/chat/completions', {
       method: 'POST',
@@ -221,25 +413,26 @@ async function handleGenerate() {
           content: [
             { type: "image_url", image_url: { url: frames.firstFrame } },
             ...(frames.lastFrame ? [{ type: "image_url", image_url: { url: frames.lastFrame } }] : []),
-            { type: "text", text: document.getElementById('promptInput').value || "Generate" }
+            { type: "text", text: document.getElementById('promptInput').value || "Generate cinematic sequence" }
           ]
         }]
       })
     });
+    log("正在从北京云端节点拉取推理数据...");
     const result = await response.json();
     const videoUrl = JSON.stringify(result).match(/https?:\/\/[^\s"]+\.mp4/g);
     if (videoUrl) {
-      log("检测到输出流，同步至 IndexedDB...");
+      log("检测到流文件，同步至本地持久层...");
       const blob = await fetch(videoUrl[0]).then(r => r.blob());
       await db.history.add({
-        prompt: document.getElementById('promptInput').value || "AI视频",
+        prompt: document.getElementById('promptInput').value || "Generated Sequence",
         videoBlob: blob,
         timestamp: new Date().toLocaleString()
       });
       renderHistory();
-      log("渲染任务成功结束。");
-    } else { log("API 未返回视频链接", true); }
-  } catch (err) { log("通信故障: " + err.message, true); }
+      log("序列已存入本地归档。");
+    } else { log("API 响应异常：未捕获到视频流", true); }
+  } catch (err) { log("链路中断: " + err.message, true); }
   finally { btn.disabled = false; }
 }
 
@@ -247,9 +440,12 @@ async function renderHistory() {
   const items = await db.history.orderBy('id').reverse().toArray();
   const grid = document.getElementById('historyGrid');
   grid.innerHTML = items.map(item => `
-    <div class="card" style="padding:10px;">
-      <video src="${URL.createObjectURL(item.videoBlob)}" controls style="width:100%; border-radius:4px;"></video>
-      <p style="font-size:12px; margin:8px 0 0 0;">${item.prompt}</p>
+    <div class="history-card">
+      <video src="${URL.createObjectURL(item.videoBlob)}" controls></video>
+      <div class="history-meta">
+        <p>${item.prompt}</p>
+        <span style="font-size: 10px; opacity: 0.4;">${item.timestamp}</span>
+      </div>
     </div>
   `).join('');
 }
@@ -267,7 +463,7 @@ class Star {
     this.y = Math.random() * canvas.height;
     this.speed = 0.2 + (1 - this.z) * 1.5;
     this.radius = 0.5 + (1 - this.z) * 1.5;
-    this.alpha = 0.2 + (1 - this.z) * 0.5;
+    this.alpha = 0.1 + (1 - this.z) * 0.4;
   }
   update() { this.x += this.speed; if (this.x > canvas.width + 50) this.reset(); }
   draw() {
@@ -277,7 +473,7 @@ class Star {
     ctx.fill();
   }
 }
-const stars = Array.from({length: 150}, () => new Star());
+const stars = Array.from({length: 200}, () => new Star());
 function animate() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   stars.forEach(s => { s.update(); s.draw(); });
